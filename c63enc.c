@@ -10,7 +10,7 @@
 
 #include "c63.h"
 #include "tables.h"
-
+#include "cell_util.h"
 
 static char *output_file, *input_file;
 FILE *outfile;
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
             break;
         }
     }
-
+   
 
     if(optind >= argc)
     {
@@ -240,7 +240,7 @@ int main(int argc, char **argv)
         perror("fopen");
         exit(EXIT_FAILURE);
     }
-
+    init_cell();
 
     /* Encode input frames */
     int numframes = 0;;
