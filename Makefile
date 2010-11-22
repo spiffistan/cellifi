@@ -1,9 +1,10 @@
 SPUCC = spu-gcc
 PPUCC = ppu-gcc
 CC = $(PPUCC)
-SPUFLAGS = -g -I/usr/spu/include
+CFLAGS = -g
+SPUFLAGS = -g 
 PPUFLAGS = -g 
-SPULIBS = -lm
+SPULIBS = -lm 
 PPULIBS = -lspe2 -lm
 
 ENCOBJS = c63enc.o dsp.o tables.o io.o c63_write.o c63.h common.o me.o cell_util.o

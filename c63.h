@@ -24,6 +24,14 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
+typedef struct workitem {
+    uint8_t block_x;
+    uint8_t block_y;
+    float *content_orig;
+    float *content_ref;
+    struct macroblock *mb;
+} workitem_t __attribute__((aligned(16)));
+
 struct yuv
 {
   uint8_t *Y;

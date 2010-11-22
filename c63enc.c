@@ -97,7 +97,7 @@ static void c63_encode_image(struct c63_common *cm, yuv_t *image)
     if (!cm->curframe->keyframe)
     {
         /* Motion Estimation */
-        c63_motion_estimate(cm);
+        cell_me(cm);
 
         /* Motion Compensation */
         c63_motion_compensate(cm);
@@ -240,7 +240,7 @@ int main(int argc, char **argv)
         perror("fopen");
         exit(EXIT_FAILURE);
     }
-    init_cell();
+    init_cell(cm);
 
     /* Encode input frames */
     int numframes = 0;;
