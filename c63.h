@@ -24,13 +24,6 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-typedef struct workitem {
-    uint8_t block_x;
-    uint8_t block_y;
-    float *content_orig;
-    float *content_ref;
-    struct macroblock *mb;
-} workitem_t __attribute__((aligned(16)));
 
 struct yuv
 {
@@ -38,9 +31,9 @@ struct yuv
   uint8_t *U;
   uint8_t *V;
 
-  uint8_t *Ybase;
-  uint8_t *Ubase;
-  uint8_t *Vbase;
+  float *Yfloat;
+  float *Ufloat;
+  float *Vfloat;
 };
 
 struct dct
@@ -64,7 +57,14 @@ struct macroblock
 {
     int use_mv;
     int8_t mv_x, mv_y;
-};
+    uint8_t pad[10];
+} __attribute((aligned(16)));
+
+typedef struct workcomplete
+{
+    int completed;
+    int pad[3];
+} workcomplete_t __attribute__((aligned(16)));
 
 struct frame
 {
@@ -79,6 +79,11 @@ struct frame
     struct macroblock *mbs[3];
 
     int keyframe;
+
+    // Cell impl specific
+    workcomplete_t *work_complete_Y __attribute__((aligned(16)));
+    workcomplete_t *work_complete_U __attribute__((aligned(16)));
+    workcomplete_t *work_complete_V __attribute__((aligned(16)));
 };
 
 struct c63_common

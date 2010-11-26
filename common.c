@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <assert.h>
-
+#include <stdlib.h>
 #include "c63.h"
 #include "tables.h"
 
@@ -118,6 +118,9 @@ struct frame* create_frame(struct c63_common *cm, yuv_t *image)
     f->recons->Y = malloc(cm->ypw * cm->yph);
     f->recons->U = malloc(cm->upw * cm->uph);
     f->recons->V = malloc(cm->vpw * cm->vph);
+    f->recons->Yfloat = malloc(cm->ypw * cm->yph * sizeof(float));
+    f->recons->Ufloat = malloc(cm->upw * cm->uph * sizeof(float));
+    f->recons->Vfloat = malloc(cm->vpw * cm->vph * sizeof(float));
 
     f->predicted = malloc(sizeof(yuv_t));
     f->predicted->Y = calloc(cm->ypw * cm->yph, sizeof(uint8_t));
@@ -132,6 +135,11 @@ struct frame* create_frame(struct c63_common *cm, yuv_t *image)
     f->mbs[0] = calloc(cm->ypw * cm->yph, sizeof(struct macroblock));
     f->mbs[1] = calloc(cm->upw * cm->uph, sizeof(struct macroblock));
     f->mbs[2] = calloc(cm->vpw * cm->vph, sizeof(struct macroblock));
+
+    f->work_complete_Y = calloc(cm->mb_cols * cm->mb_rows, sizeof(workcomplete_t));
+    f->work_complete_U = calloc(cm->mb_cols * cm->mb_rows,  sizeof(workcomplete_t));
+    f->work_complete_V = calloc(cm->mb_cols * cm->mb_rows, sizeof(workcomplete_t));
+
 
     return f;
 }

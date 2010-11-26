@@ -39,6 +39,7 @@ static yuv_t* read_yuv(FILE *file)
 
     /* Read Y' */
     image->Y = malloc(width*height);
+    image->Yfloat = malloc(width*height * sizeof(float));
     len += fread(image->Y, 1, width*height, file);
     if(ferror(file))
     {
@@ -48,6 +49,7 @@ static yuv_t* read_yuv(FILE *file)
 
     /* Read U */
     image->U = malloc(width*height);
+    image->Ufloat = malloc(width*height*sizeof(float));
     len += fread(image->U, 1, (width*height)/4, file);
     if(ferror(file))
     {
@@ -57,6 +59,7 @@ static yuv_t* read_yuv(FILE *file)
 
     /* Read V */
     image->V = malloc(width*height);
+    image->Vfloat = malloc(width*height*sizeof(float));
     len += fread(image->V, 1, (width*height)/4, file);
     if(ferror(file))
     {
@@ -69,7 +72,14 @@ static yuv_t* read_yuv(FILE *file)
         fprintf(stderr, "Reached end of file.\n");
         return NULL;
     }
-
+    int i, j;
+    for(i = 0; i < height; i++) {
+        for(j = 0; j < width; j++) {
+           image->Yfloat[i * width + j] = (float)image->Y[i * width + j];
+           image->Ufloat[i * width + j] = (float)image->U[i * width + j];
+           image->Vfloat[i * width + j] = (float)image->V[i * width + j];
+        }
+    }
     return image;
 }
 
@@ -101,12 +111,13 @@ static void c63_encode_image(struct c63_common *cm, yuv_t *image)
 
         /* Motion Compensation */
         c63_motion_compensate(cm);
+    } else {
+    /* DCT and Quantization */
+        dct_quantize(image->Y, cm->curframe->predicted->Y, cm->padw[0], cm->padh[0], cm->curframe->residuals->Ydct, cm->quanttbl[0]);
+        dct_quantize(image->U, cm->curframe->predicted->U, cm->padw[1], cm->padh[1], cm->curframe->residuals->Udct, cm->quanttbl[1]);
+        dct_quantize(image->V, cm->curframe->predicted->V, cm->padw[2], cm->padh[2], cm->curframe->residuals->Vdct, cm->quanttbl[2]);
     }
 
-    /* DCT and Quantization */
-    dct_quantize(image->Y, cm->curframe->predicted->Y, cm->padw[0], cm->padh[0], cm->curframe->residuals->Ydct, cm->quanttbl[0]);
-    dct_quantize(image->U, cm->curframe->predicted->U, cm->padw[1], cm->padh[1], cm->curframe->residuals->Udct, cm->quanttbl[1]);
-    dct_quantize(image->V, cm->curframe->predicted->V, cm->padw[2], cm->padh[2], cm->curframe->residuals->Vdct, cm->quanttbl[2]);
 
     /* Reconstruct frame for inter-prediction */
     dequantize_idct(cm->curframe->residuals->Ydct, cm->curframe->predicted->Y, cm->ypw, cm->yph, cm->curframe->recons->Y, cm->quanttbl[0]);
@@ -114,7 +125,18 @@ static void c63_encode_image(struct c63_common *cm, yuv_t *image)
     dequantize_idct(cm->curframe->residuals->Vdct, cm->curframe->predicted->V, cm->vpw, cm->vph, cm->curframe->recons->V, cm->quanttbl[2]);
 
     /* dump_image can be used here to check if the prediction is correct */
-
+    int i,j;
+    for(i = 0; i < cm->yph; i++) {
+        for(j = 0; j < cm->ypw; j++) {
+            cm->curframe->recons->Yfloat[i * cm->ypw + j] = (float)cm->curframe->recons->Y[i * cm->ypw + j];
+        }
+    }
+    for(i = 0; i < cm->uph; i++) {
+        for(j = 0; j < cm->upw; j++) {
+            cm->curframe->recons->Ufloat[i * cm->upw + j] = (float)cm->curframe->recons->U[i * cm->upw + j];
+            cm->curframe->recons->Vfloat[i * cm->vpw + j] = (float)cm->curframe->recons->V[i * cm->vpw + j];
+        }
+    }
     write_frame(cm);
 
     ++cm->framenum;
